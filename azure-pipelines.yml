@@ -1,0 +1,44 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- development
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: YarnInstaller@3
+  inputs:
+    versionSpec: '1.x'
+    checkLatest: true
+- task: Yarn@3
+  inputs:
+    projectDirectory: 'api'
+    arguments: 'install'
+- task: Yarn@3
+  inputs:
+    projectDirectory: 'api'
+    arguments: 'test:ci'
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'api/src/tests/coverage/junit.xml'
+    failTaskOnFailedTests: true
+    testRunTitle: 'Publish Test Results'
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: 'api/src/tests/coverage/cobertura-coverage.xml'
+    reportDirectory: 'api/src/tests/coverage'
+- task: Yarn@3
+  inputs:
+    projectDirectory: 'api'
+    arguments: 'build'
+- task: PublishBuildArtifacts@1
+  inputs:
+      PathtoPublish: 'api/dist'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
